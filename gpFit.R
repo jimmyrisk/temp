@@ -9,12 +9,21 @@ gpFit <- function(formula,data,covtype="gauss",nugget.estim=TRUE,trend=FALSE){
   yName <- all.vars(formula)[1] # get y variable name
   xNames <- all.vars(formula)[-1]
   i <- which(names(data)==yName) # get y variable name index
-  X <- subset(data,select=xNames) # pull X data columns
+  
+  if(xNames=="."){
+    X <- subset(data,select=names(data)[-i])
+  } else{
+    X <- subset(data,select=xNames) # pull X data columns
+  }
+  
+  
   y <- data[,i] # pull y from data using formula
   if(trend==TRUE){
-    fitGP_nug <- km(formula=formula,design=X,response=y,covtype=covtype,nugget.estim=nugget.estim)
+    fitGP_nug <- km(formula=formula,design=X,response=y,covtype=covtype,nugget.estim=nugget.estim,
+                    control=list(trace=FALSE))
   } else{
-    fitGP_nug <- km(formula= ~1,design=X,response=y,covtype=covtype,nugget.estim=nugget.estim)
+    fitGP_nug <- km(formula= ~1,design=X,response=y,covtype=covtype,nugget.estim=nugget.estim,
+                    control=list(trace=FALSE))
   }
   
   nug <- fitGP_nug@covariance@nugget
@@ -23,6 +32,7 @@ gpFit <- function(formula,data,covtype="gauss",nugget.estim=TRUE,trend=FALSE){
               coef.trend = fitGP_nug@trend.coef,
               coef.cov = fitGP_nug@covariance@range.val,
               coef.var = fitGP_nug@covariance@sd2,
-              covtype = fitGP_nug@covariance@name)
+              covtype = fitGP_nug@covariance@name,
+              control=list(trace=FALSE))
   return(fitGP)
 }
